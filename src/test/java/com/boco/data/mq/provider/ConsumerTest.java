@@ -9,6 +9,8 @@ public class ConsumerTest {
 		PTPConsumer consumer = new PTPConsumerImpl();
 		consumer.init();
 		consumer.getMessage("QUEUE1");
+		//xz本地分支
+		System.out.println("");
 	}
 
 }
