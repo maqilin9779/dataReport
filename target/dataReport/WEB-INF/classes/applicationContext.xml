@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:aop="http://www.springframework.org/schema/aop" 
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx.xsd      
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+        
+   	<!--
+   	<import resource="applicationContext2.xml"/>-->
+   
+    <context:component-scan base-package="com.boco.data" >
+    	<!--过滤掉控制层的注解  -->
+    	<context:exclude-filter type="annotation"
+    		 expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+    
+    <context:property-placeholder location="classpath:jdbc.properties" />  
+    
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		  	<property name="driverClassName" value="${jdbc.driverClass}" />
+		  	<property name="url" value="${jdbc.url}" />
+	      	<property name="username" value="${jdbc.username}" />
+	      	<property name="password" value="${jdbc.password}" />
+		</bean>
+	
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	 
+	<!--注册jdbc访问数据的事务管理器  -->
+	<bean id = "txManager" class = "org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	 	<property name="dataSource" ref = "dataSource"></property>	
+	</bean>
+	
+	<!--开启事物注解驱动  -->
+	<tx:annotation-driven  transaction-manager="txManager" />
+	
+	<!--配置mybaits的SqlSessionFactory  -->
+	<bean id = "sqlSessionFactory" class = "org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref = "dataSource"></property>
+		<property name="configLocation" value="classpath:mybatis-cfg.xml"></property>	
+	</bean>
+	
+	
+	<!--基于生成mapper的代理实现的第一种配置方式  -->
+	<!-- <bean id = "userMapperClass" class = "org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="com.tz.mybatis.sysmanage.mapper.UserMapperClass"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+	</bean> -->
+	 
+	 <!--由于上面第一种方式,每个接口类的实现生成带来都需要配置,不方便
+	 	所以,我们需要采用mapper扫描器 MapperScannerConfigurer来配置哪些包下面需要自动创建代理对象  -->
+	 <bean class = "org.mybatis.spring.mapper.MapperScannerConfigurer">
+	 	<!--如果有多个报路径,用逗号分开即可  -->
+	 	<property name="basePackage" value="com.boco.data.*.mapper"/>
+	 	<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+	 </bean>
+	 
+	 <!-- spring jdbc -->
+		 <bean id="IDownLoadSheetAccessiorsDAO" 
+		 		class="com.boco.data.base.dao.jdbc.DownLoadSheetAccessiorsDAOImpl">
+    	 	<property name="dataSource" ref="dataSource"></property>
+    	 </bean>
+    	 <bean id="ItawSystemDictTypeDao" 
+		 		class="com.boco.data.base.dao.jdbc.TawSystemDictTypeDao">
+    	 	<property name="dataSource" ref="dataSource"></property>
+    	 </bean>
+    	 
+    
+    <bean id="groupComplaintDataReport" 
+    	class="com.boco.data.complaint.quartz.GroupComplaintDataReport"></bean>
+    
+    
+    <bean id="commonFaultDataReport"
+    	class="com.boco.data.commonfault.quartz.CommonFaultDataReport"></bean>
+    
+    
+	  <!-- 集团投诉job的配置开始 -->
+	  <bean id="groupComplaintJobDetail"
+        class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject">
+            <ref bean="groupComplaintDataReport" />
+        </property>
+        <property name="targetMethod">
+            <value>work</value>
+        </property>
+	   </bean>
+	   
+	   <bean id="commonFaultJobDetail"
+        class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject">
+            <ref bean="commonFaultDataReport" />
+        </property>
+        <property name="targetMethod">
+            <value>work</value>
+        </property>
+	   </bean>
+	   
+	 <!-- 集团投诉调度的配置开始============================================= -->
+	 <bean id="groupComplaincrontestJobTrigger" 
+	  class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail">
+            <ref bean="groupComplaintJobDetail" />
+        </property>
+        <property name="cronExpression">
+            <value>10 0/2040 * * * ?</value>
+            <!-- Cron表达式“10 */1 * * * ?”意为：从10秒开始，每1分钟执行一次。  -->
+        </property>
+    </bean>
+    
+    <bean id="commonFaultcrontestJobTrigger" 
+	  class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail">
+            <ref bean="commonFaultJobDetail" />
+        </property>
+        <property name="cronExpression">
+            <value>0 10 01 * * ? *</value>
+            <!-- Cron表达式“10 */1 * * * ?”意为：从10秒开始，每1分钟执行一次。  -->
+        </property>
+    </bean>
+    
+    <!-- 集团投诉启动触发器的配置开始-==============<ref bean="groupComplaincrontestJobTrigger2" />============================== -->
+    <bean name="groupComplaintstartQuertz" lazy-init="false" autowire="no"
+        class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="groupComplaincrontestJobTrigger" />
+                <ref bean="commonFaultcrontestJobTrigger" />
+            </list>
+        </property>
+    </bean>
+	 
+</beans>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boco.data.reportmanagement.dao.ReportManageMapper">
+	<!-- 查询需要发短信的报表信息 -->
+	<select id="getReportByCondition"
+			  resultType="com.boco.data.reportmanagement.entity.ReportManagementMsg">
+		select id,filename,circle,frequency,uploadtime,mobile
+ 			from reportmanagement_msg  where circle=#{0} and frequency=#{1}
+	</select>
+</mapper>
+
+
+
+
+
+
+
+

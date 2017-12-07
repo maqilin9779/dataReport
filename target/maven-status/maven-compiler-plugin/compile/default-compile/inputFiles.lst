@@ -1,0 +1,15 @@
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\complaint\quartz\GroupComplaintDataReport.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\freamework\util\XmlManage.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\base\dao\jdbc\TawSystemDictTypeDao.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\complaint\controller\ComplaintController.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\freamework\util\StaticMethod.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\base\dao\ITawSystemDictTypeDao.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\base\dao\jdbc\DownLoadSheetAccessiorsDAOImpl.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\commonfault\quartz\CommonFaultDataReport.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\complaint\uitl\DataReportUtil.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\base\service\IDownLoadSheetAccessoriesService.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\freamework\util\ApplicationContextHolder.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\base\dao\IDownLoadSheetAccessiorsDAO.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\base\dao\ExtendBatchPreparedStatementSetter.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\base\service\impl\DownLoadSheetAccessoriesServiceImpl.java
+D:\Eclipse_WorkSpace\dataReport\src\main\java\com\boco\data\freamework\util\XMLProperties.java

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="GB2312"?>
+<boco>
+	<csv>
+		  <!-- 短信的内容配置 -->
+		  <week>您本周需要在省内EOMS报表管理模块中上传一张报表</week>
+	      <month>本月需要在省内EOMS报表管理模块中上传一张报表</month>
+	</csv>
+</boco>

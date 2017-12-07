@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="GB2312"?>
+<boco>
+	<csv>
+		<!-- 本地输出路径window和linux不一样 -->
+		<outPutPath>D:/csvUpload_complaint/</outPutPath>
+		<serverPath>/</serverPath><!-- ftp服务器路径 根目录-->
+		<ftpserver>10.233.168.26</ftpserver><!-- FTP ip地址 -->
+		<userLogin>eoms</userLogin><!-- FTP 用户名 -->
+		<pwdLogin>eoms@123</pwdLogin><!-- FTP 密码-->
+	</csv>
+	<sql>
+		<broadband1>
+			select distinct '1' status,ComplaintMain.sheetid sheetid,ComplaintMain.title title,ComplaintMain.sendtime sendtime,ComplaintMain.serialno serialno,
+	ComplaintMain.customattribution customattribution,ComplaintMain.id id,ComplaintLinkGZ.operateTime endtime,ComplaintLinkGZ.operateTime endtime_,ComplaintMain.complainttype4,ComplaintMain.complainttype5,ComplaintMain.complainttype6 from  Complaint_Main  ComplaintMain left join Complaint_Link ComplaintLinkGZ  on ComplaintLinkGZ.mainId=ComplaintMain.id and 
+			ComplaintLinkGZ.operateType='46' and ComplaintLinkGZ.operateTime=(select min(gzlink.operateTime) from  Complaint_Link gzlink where gzlink.mainId=ComplaintMain.id and gzlink.operateType='46')
+			where ComplaintMain.isGroupcustomercomplaint=1 and ComplaintMain.deleted=0 and
+ ComplaintMain.sendtime&gt;today-60 and  ComplaintLinkGZ.operateTime&gt;today-1 and ComplaintLinkGZ.operateTime&lt;today
+		</broadband1>
+	</sql>
+</boco>

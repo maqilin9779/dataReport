@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boco.data.reportmanagement.dao.SmsMonitorMapper">
+
+	<!-- 批量插入 -->
+	<insert id="batchAdd" 
+			parameterType="com.boco.data.reportmanagement.entity.SmsMonitor">
+		<foreach collection="list" item="sms" separator=";">
+		insert into sms_monitor(id,service_id,buiz_id,receiver_id,mobile,
+		dispatch_time,content,is_send_imediat,regetdata,deleted)values
+		(#{sms.id},#{sms.serviceId},#{sms.buizid},#{sms.receiverId},#{sms.mobile},
+		#{sms.dispatchTime},#{sms.content},
+		#{sms.isSendImediat},#{sms.regetData},#{sms.deleted})
+		</foreach>
+	</insert>
+	<!-- 数据库差异，针对oracle/mysql数据库
+		insert into sms_monitor(id,service_id,buiz_id,receiver_id,mobile,
+		dispatch_time,content,is_send_imediat,regetdata,deleted)values
+		这一段写在foreach标签前面
+		 -->
+</mapper>

@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<boco>
+	<!-- 省份代码 -->
+		<provinceCode>XZ</provinceCode>
+	<!-- 集客投诉工单数据查询,注意path是相对路径前面不加/ -->
+	<XZ>
+		<!-- Ftp配置 -->
+		<url>10.233.168.26</url>
+		<port>21</port>
+		<username>etl</username>
+		<password>etl@123</password>
+		<path>/home/outerftp/jike/</path>
+		
+		<!-- 客户类别，客户类别编码，是否大面积投诉,重复投诉次数，是否主动监控到告警，告警流水号，是否告警派单
+			，告警工单编号等需要时在配置文件中自己配置sql和字典 -->
+		<sql>
+Select  m.provinceName as province_name,m.cityname as city_name,m.sheetid as orderId,
+				rtrim(m.title) as orderTheme,m.customNo as customerId,m.customName as customerName,
+				m.customServLevel as customerLev,
+				rtrim(m.customServLevel) as customerLevId,'' as customerType,'' as customerTypeId,
+				m.status as status,m.bservType as busType,m.bservType as busTypeId,'' as isLargeComplain,
+				
+				rtrim(m.complaintDesc) as complainDetail,'' as complainNbr,m.productName as proId,
+				m.circuitCode as circuitName,m.businessLevel as assuranceLev,rtrim(m.businessLevel) as assuranceLevId,
+				'' as isAlarmMonitor,'' as alarmId,'' as isAlarmOrder,'' as alarmOrderId,
+				m.complaintTime as complainStartTime,m.faultTime as AlarmStartTime,m.sendTime as orderStartTime,
+				m.sheetCompleteLimit as limitTime,m.endTime as orderEndTime,
+				(select max(rtrim(replace(dealresult,'char(9)','')) ) from GROUPCOMPLAINT_link where mainid = m.id and operatetime in (select max(operatetime) from GROUPCOMPLAINT_link 
+					where activeTemplateid='SecondExcuteHumTask' and operateType='46' group by mainid ) ) as complainResult,
+       			(select max(rtrim(replace(dealresult,'char(9)','')) ) from GROUPCOMPLAINT_link where mainid = m.id and operatetime in (select max(operatetime) from GROUPCOMPLAINT_link 
+					where activeTemplateid='SecondExcuteHumTask' and operateType='46' group by mainid ) ) as complainResultId,
+				
+				(select min(taskname) from GROUPCOMPLAINT_task where sheetkey=m.id and taskstatus!='5') as orderState,
+				(select max(taskname) from GROUPCOMPLAINT_task where sheetkey=m.id and taskstatus!='5' ) as orderStateId,
+				(select distinct taskstatus from GROUPCOMPLAINT_task where sheetkey=m.id and taskstatus!='5' ) as taskstatus,
+				(select isReplied from GROUPCOMPLAINT_link where mainid = m.id and operatetime in (select max(operatetime) from GROUPCOMPLAINT_link 
+					where activeTemplateid='SecondExcuteHumTask' and operateType='46' group by mainid ) ) as isContactCustomer,
+					
+				'' as contactCustomerFirstTime,'' as pretreatmentTime,'' as preanalysisReason,'' as isSucPreanalysis,
+				'' as taskTransferTime, '' as maintenanceCompany,
+				
+				'' as maintenanceStartTime,'' as maintenanceDetail,'' as maintenanceResult,
+				'' as isvisite,'' as arriveSceneTime,'' as removeAlarmTime,'' as recoFaultTime,'' as faulteChargeableCityName,
+				'' as isoverTime,'' as overTimeResion,(select max(rtrim(issueEliminatReason)) from GROUPCOMPLAINT_link where mainid=m.id and activeTemplateid='FirstExcuteHumTask' and operateType='46' ) as problemResion,
+				'' as problemResionId,'' as isConfirmResult,(select max(rtrim(linkCheckResult)) from GROUPCOMPLAINT_link where mainid=m.id and activeTemplateId='CheckingHumTask' ) as qcResult,		
+				(select max( rtrim(linkCheckIdea)) from GROUPCOMPLAINT_link where mainid=m.id and activeTemplateId='CheckingHumTask' ) as qcDetail,
+				rtrim(m.faultType) as faultType,rtrim(m.faultType) as faultTypeId,
+				m.connectType as accessWay,m.enterpriseCode as enterpriseId,m.serverCode as serviceId,'' as isVolumeFault,
+				m.termType as terminalType,'' as calledNumberCityName,m.ecsiType as ecsiType,
+				
+				'' as accgateIp,'' as accgateId,'' as mpiagSendMegTime,'' as isSusResponse,'' as mpiagResReportTime,
+				'' as isSucResReport,m.apnName as apnName,'' as tunnelType,'' as vpnInstantiation,
+				'' as ceIp,'' as customerIp
+			from GROUPCOMPLAINT_MAIN m left join (select distinct mainid from GROUPCOMPLAINT_link link where 
+					operateTime&gt;='@beginTime@' and 
+					operateTime&lt;='@endTime@' ) l on m.id = l.mainid
+			where m.id = l.mainid and (m.sendTime&gt;='@beginTime@' and 
+					m.sendTime&lt;='@endTime@') and  m.deleted = '0'
+					
+		</sql>
+		<!-- 特殊字段 -->
+		<chargeName>省公司负责人</chargeName>
+		<chargePhone>省公司负责人电话</chargePhone>
+		<!-- 时间格式 -->
+		<dateFormate>complainStartTime,AlarmStartTime,orderStartTime,limitTime,orderEndTime,contactCustomerFirstTime,
+			pretreatmentTime,taskTransferTime,maintenanceStartTime,arriveSceneTime,removeAlarmTime,recoFaultTime,
+			mpiagSendMegTime,mpiagResReportTime</dateFormate>
+		<!-- 需要转换字典 -->
+		<dictName>customerLev,customerType,busType,assuranceLev,complainResult,issueEliminatReason,
+		faultType,accessWay,assuranceLevId,ecsiType,status,maintenanceResult,faultResult</dictName>
+		<!-- 处理环节，质检环节，归档环节，用于判断工单状态并对应集团编码 -->
+		<processLink>FirstExcuteHumTask,SecondExcuteHumTask</processLink>
+		<qualityChecking>CheckingHumTask</qualityChecking>
+		<holdTask>HoldHumTask</holdTask>		
+	</XZ>
+
+	<!-- 字典对应表 -->
+	<dict id='qcResult' nam='质检结果'>
+		<item id="101490401" name="质检通过"/>	
+		<item id="101490402" name="质检不通过"/>	
+	</dict>
+	<dict id='status' nam='工单状态'>
+		<item id="-12" name="作废"/>	
+		<item id="0" name="运行中"/>
+		<item id="1" name="归档"/>		
+	</dict>
+	<dict id='maintenanceResult' nam='代维处理故障结果'>
+		<item id="101030601" name="已解决"/>	
+		<item id="101030602" name="有遗留问题"/>	
+		<item id="101030603" name="无需解决"/>		
+			
+	</dict>
+	<dict id='faultResult' nam='处理故障结果'>
+		<item id="101030601" name="已解决"/>	
+		<item id="101030602" name="有遗留问题"/>	
+		<item id="101030603" name="无需解决"/>		
+			
+	</dict>
+	<dict id="customerLev" name="客户等级">
+			<item id="101490301" name="金牌服务"/>	
+			<item id="101490302" name="银牌服务"/>
+			<item id="101490303" name="铜牌服务"/>
+			<item id="101490304" name="标准服务"/>
+	</dict>
+	<dict id="customerType" name="客户类别">
+			<item id="1" name="党政军"/>	
+			<item id="2" name="金融"/>
+			<item id="3" name="教育"/>
+			<item id="4" name="工业和能源"/>
+			<item id="5" name="医疗"/>
+			<item id="6" name="互联网"/>
+			<item id="7" name="农商"/>
+			<item id="8" name="其他"/>
+	</dict>
+	<dict id="busType" name="投诉业务类型">
+			<item id="101100201" name="GPRS"/>	
+			<item id="101100202" name="彩信"/>
+			<item id="101100203" name="短信"/>
+			<item id="101100204" name="专线"/>
+			<item id="101100205" name="语音"/>
+			<item id="101100206" name="其他"/>
+	</dict>
+	<dict id="assuranceLev" name="业务保障等级">
+			<item id="101031301" name="AAA"/>	
+			<item id="101031303" name="AA"/>
+			<item id="101031304" name="A"/>
+			<item id="101031305" name="普通"/>
+	</dict>
+	<dict id="assuranceLevId" name="业务保障等级编码">
+			<item id="101031301" name="1"/>	
+			<item id="101031303" name="2"/>
+			<item id="101031304" name="3"/>
+			<item id="101031305" name="4"/>
+	</dict>
+	<dict id="complainResult" name="处理结果">
+			<item id="101100701" name="已解决"/>	
+			<item id="101100702" name="未解决"/>
+	</dict>
+	<dict id="orderState" name="工单状态">
+			<item id="1" name="草稿"/>	
+			<item id="2" name="待处理"/>
+			<item id="3" name="处理中"/>
+			<item id="4" name="质检中"/>
+			<item id="5" name="待归档"/>
+			<item id="6" name="已归档"/>
+			<item id="7" name="其他"/>
+	</dict>
+	<dict id="maintenanceCompany" name="代维厂家">
+			<item id="101105001" name="是"/>	
+			<item id="101105002" name="否"/>
+	</dict>
+	<dict id="isContactCustomer" name="是否联系客户">
+			<item id="101105001" name="是"/>	
+			<item id="101105002" name="否"/>
+	</dict>
+	<dict id="issueEliminatReason" name="问题原因">
+			<item id="101060917" name="网络原因"/>	
+			<item id="101060918" name="非网络原因"/>
+			<item id="101060919" name="其它"/>
+	</dict>
+	<dict id="faultType" name="故障分类">
+			<item id="101490501" name="业务中断"/>	
+			<item id="101490502" name="一般故障"/>
+			
+	</dict>
+	<dict id="accessWay" name="接入类型">
+			<item id="101100501" name="互联网"/>	
+			<item id="101100502" name="专线"/>
+	</dict>
+	<dict id="ecsiType" name="EC/SI类型">
+			<item id="101100401" name="MAS承载类"/>	
+			<item id="101100402" name="ADC承载类"/>
+			<item id="101100403" name="其他"/>
+	</dict>
+</boco>

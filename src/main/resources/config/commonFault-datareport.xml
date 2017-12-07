@@ -1,0 +1,244 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<boco>
+	<!-- 省份代码 -->
+		<provinceCode>XZ</provinceCode>
+		<!-- <csvFile>/opt/data/jt_groupcomplaint_centralcommonfault</csvFile> -->
+	<!-- 集客投诉工单数据查询 -->
+	<XZ>
+		<!-- Ftp配置 -->
+		<url>10.233.168.26</url>
+		<port>21</port>
+		<username>etl</username>
+		<password>etl@123</password>
+		<path>/home/outerftp/jike/</path>
+		
+		<!-- 故障分类字典值根据现场进行配置二级字典-->
+		<sql>
+select  m.mainFaultGenerantPriv as province_name,
+				(select max(areaname) from taw_system_area where areaid = m.mainFaultGenerantCity )as city_name,
+				m.sheetid as faultOrderId,
+				rtrim(m.title) as orderTheme,m.maingroupcustomcode as customerId,m.maingroupcustomname as customerName,m.mainmonitorlevel as customerLev,
+				m.mainmonitorlevel as customerLevId,'' as customerType,'' as customerTypeId,
+				m.status as status,''as busType,'' as busTypeId,
+				m.mainproductidentify as proId,m.maincircuitnumber as circuitName,m.mainGroupCustomLevel as assuranceLev,m.mainGroupCustomLevel as assuranceLevId,
+				
+				m.mainAlarmId as alarmId,m.mainNetName as alarmNet,rtrim(m.mainequipmentid) as alarmEquipmentId,
+				m.mainEquipmentFactory as alarmEquipmentCompany,m.mainequipmenttype as alarmEquipmentType,m.mainAlarmSource as alarmName,
+				'' as alarmType,rtrim(m.mainAlarmDesc) as alarmDetail,
+				m.mainFaultGenerantTime as AlarmStartTime,m.sendTime as orderStartTime,
+				m.sheetCompleteLimit as limitTime,m.endTime as orderEndTime,
+				
+				(select max(linkFaultDealResult) from centralcommonfault_link where mainid = m.id and operatetime in (select max(operatetime) from centralcommonfault_link 
+					where activeTemplateid='SecondExcuteHumTask' and operateType='46' group by mainid ) ) as faultResult,
+				 (select max(linkFaultDealResult) from centralcommonfault_link where mainid = m.id and operatetime in (select max(operatetime) from centralcommonfault_link 
+					where activeTemplateid='SecondExcuteHumTask' and operateType='46' group by mainid ) ) as faultResultId,
+				(select taskname from centralcommonfault_task where sheetkey=m.id and taskstatus!='5' and taskname&lt;&gt;'cc') as orderState,
+				(select taskname from centralcommonfault_task where sheetkey=m.id and taskstatus!='5' and taskname&lt;&gt;'cc') as orderStateId,
+				(select min(taskstatus) from centralcommonfault_task where sheetkey=m.id and taskstatus!='5' ) as taskstatus,
+				
+				'' as isContactCustomer,'' as contactCustomerFirstTime,'' as pretreatmentTime,'' as preanalysisReason,	
+				'' as preanalysisReasonId,
+				'' as isSucPreanalysis,'' as taskTransferTime,
+				'' as maintenanceCompany,
+				(select min(operatetime) from centralcommonfault_link 
+					where activeTemplateid='SecondExcuteHumTask'  and mainid = m.id group by mainid ) as maintenanceStartTime,
+				(select max(rtrim(linkFaultDealResult)) from centralcommonfault_link where mainid = m.id and operatetime in (select max(operatetime) from centralcommonfault_link 
+					where mainid = m.id and activeTemplateid='SecondExcuteHumTask' and operateType='46' group by mainid ) ) as maintenanceDetail,
+				(select max(linkFaultDealResult) from centralcommonfault_link where mainid = m.id and operatetime in (select max(operatetime) from centralcommonfault_link 
+					where activeTemplateid='SecondExcuteHumTask' and operateType='46' group by mainid ) ) as maintenanceResult,
+				(select max(linkFaultDealResult) from centralcommonfault_link where mainid = m.id and operatetime in (select max(operatetime) from centralcommonfault_link 
+					where activeTemplateid='SecondExcuteHumTask' and operateType='46' group by mainid ) )as maintenanceResultId,
+				'' as isvisite,
+				'' as arriveSceneTime,m.mainAlarmSolveDate as removeAlarmTime,
+				(select max (linkfaultavoidtime) from centralcommonfault_link where mainid = m.id and operatetime in (select max(operatetime) from centralcommonfault_link 
+					where activeTemplateid='SecondExcuteHumTask' and operateType='46' group by mainid ) ) as recoFaultTime,
+				(select max(areaname) from taw_system_area where areaid = m.mainFaultGenerantCity ) as faulteChargeableCityName,
+				'' as isoverTime,'' as overTimeResion,'' as problemResion,'' as isConfirmResult,
+				(select max(linkcheckresult)  from centralcommonfault_link where mainid = m.id and operatetime in (select max(operatetime) from centralcommonfault_link 
+					where  mainid = m.id and activeTemplateid='CheckingHumTask' and operateType='56' group by mainid ) ) as qcResult,
+				(select max(rtrim(linkcheckcontent))  from centralcommonfault_link where mainid = m.id and operatetime in (select max(operatetime) from centralcommonfault_link 
+					where  mainid = m.id and activeTemplateid='CheckingHumTask' and operateType='56' group by mainid ) ) as qcResult,
+				m.mainNetSortTwo as faultType,m.mainNetSortTwo as faultTypeId,
+				'' as accessWay,'' as enterpriseId,'' as serviceId,
+				(select max(linkIfGreatFault) from centralcommonfault_link where mainid=m.id and activeTemplateid='FirstExcuteHumTask' and operateType='46'  ) as isVolumeFault,
+				'' as terminalType,'' as calledNumberCityName,'' as ecsiType,
+				'' as accgateIp,'' as accgateId,'' as mpiagSendMegTime,'' as isSusResponse,'' as mpiagResReportTime,
+				'' as isSucResReport,'' as apnName,'' as tunnelType,'' as vpnInstantiation,
+				'' as ceIp,'' as customerIp
+			from centralcommonfault_main m left join (select distinct mainid from centralcommonfault_link where 
+					operateTime&gt;='@beginTime@' and 
+					operateTime&lt;='@endTime@' ) l on m.id = l.mainid
+			where m.id = l.mainid and (m.sendTime&gt;='@beginTime@' and 
+					m.sendTime&lt;='@endTime@') and  m.deleted = '0' and m.mainNetSortOne='101010405'
+					
+		</sql>
+		<chargeName>省公司负责人</chargeName>
+		<chargePhone>省公司负责人电话</chargePhone>
+		<!-- 时间格式 -->
+		<dateFormate>alarmStartTime,orderStartTime,limitTime,orderEndTime,contactCustomerFirstTime,
+			pretreatmentTime,taskTransferTime,maintenanceStartTime,arriveSceneTime,removeAlarmTime,recoFaultTime,
+			mpiagSendMegTime,mpiagResReportTime</dateFormate>
+		<!-- 需要转换字典 -->
+		<dictName>customerLev,customerType,busType,assuranceLev,maintenanceCompany,accessWay,
+			faultType,assuranceLevId,status,alarmEquipmentCompany,maintenanceResult</dictName>
+		<!-- 处理环节，质检环节，归档环节，用于判断工单状态并对应集团编码 -->
+		<processLink>FirstExcuteHumTask,SecondExcuteHumTask,ThirdExcuteHumTask</processLink>
+		<qualityChecking>CheckingHumTask</qualityChecking>
+		<holdTask>HoldHumTask</holdTask>
+		
+	</XZ>
+
+<!-- 字典对应表 -->
+	<dict id='qcResult' nam='质检结果'>
+		<item id="101490401" name="质检通过"/>	
+		<item id="101490402" name="质检不通过"/>	
+	</dict>
+	<dict id='status' nam='工单状态'>
+		<item id="-12" name="作废"/>	
+		<item id="0" name="运行中"/>
+		<item id="1" name="归档"/>		
+	</dict>
+	<dict id='maintenanceResult' nam='代维处理故障结果'>
+		<item id="101030601" name="已解决"/>	
+		<item id="101030602" name="有遗留问题"/>	
+		<item id="101030603" name="无需解决"/>	
+	</dict>
+	<dict id='faultResult' nam='处理故障结果'>
+		<item id="101030601" name="已解决"/>	
+		<item id="101030602" name="有遗留问题"/>	
+		<item id="101030603" name="无需解决"/>			
+	</dict>
+	<dict id='faultType' nam='故障类型'>
+		<item id="10101040501" name="一干传输设备"/>
+		<item id="10101040502" name="二干传输设备"/>
+		<item id="10101040503" name="本地骨干层传输设备"/>
+		<item id="10101040504" name="一干传输线路"/>
+		<item id="10101040505" name="二干传输线路"/>
+		<item id="10101040506" name="本地骨干层传输线路"/>
+		<item id="10101040507" name="时钟同步网"/>
+		<item id="10101040508" name="其他"/>
+		<item id="10101040509" name="本地汇聚层传输设备"/>
+		<item id="10101040510" name="本地接入层传输设备"/>
+		<item id="10101040511" name="本地汇聚层传输线路"/>
+		<item id="10101040512" name="本地接入层传输线路"/>
+		<item id="10101040513" name="一干传输电路"/>
+		<item id="10101040514" name="二干传输电路"/>
+		<item id="10101040515" name="本地传输电路"/>
+		<item id="10101040516" name="卫星网"/>
+		<item id="10101040517" name="传输本地网"/>
+		<item id="10101040524" name="四点环"/>
+	</dict>
+	
+
+	<dict id="customerLev" name="客户等级">
+			<item id="101031201" name="金牌服务"/>	
+			<item id="101031202" name="银牌服务"/>
+			<item id="101031203" name="铜牌服务"/>
+			<item id="101031204" name="标准服务"/>
+			<item id="101031205" name="钻石服务"/>
+	</dict>
+	<dict id="mainSpeType" name="业务类型">
+			<item id="101031001" name="数据专线"/>	
+			<item id="101031002" name="互联网专线"/>
+			<item id="101031003" name="语音专线"/>
+			<item id="101031004" name="短信专线"/>
+			<item id="101031005" name="彩信专线"/>
+			<item id="101031006" name="GPRS专线"/>
+			<item id="101031007" name="WLAN"/>
+			<item id="101031008" name="MAS"/>
+			<item id="101031009" name="其他"/>
+	</dict>
+	<dict id="alarmEquipmentCompany" name="设备厂家">
+			<item id="101010301" name="ABB"/>	
+			<item id="101010327" name="AIteon"/>
+			<item id="101010333" name="AVAYA"/>
+			<item id="101010310" name="Bell"/>
+			<item id="101010326" name="Brocade"/>
+			<item id="101010342" name="CISCO"/>
+			<item id="101010329" name="COMPAQ"/>
+			<item id="101010328" name="Cabletron"/>
+			<item id="101010323" name="Cisco"/>
+			<item id="101010330" name="Dell"/>
+			<item id="101010332" name="EMC"/>
+			<item id="101010322" name="Enterasys"/>
+			<item id="101010319" name="Extreme"/>
+			<item id="101010331" name="F5"/>
+			<item id="101010313" name="HP"/>
+			<item id="101010316" name="Huawei"/>
+			<item id="101010301" name="IBM"/>
+			<item id="101010312" name="JUNIPER"/>
+			<item id="101010325" name="Juniper"/>
+			<item id="101010320" name="MAIPU"/>
+			<item id="101010324" name="Microsoft"/>
+			<item id="101010334" name="NOKIA"/>
+			<item id="101010318" name="STK"/>
+			<item id="101010321" name="SUN"/>
+			<item id="101010335" name="Sun"/>
+			<item id="101010348" name="TCL"/>
+			<item id="101010317" name="Zte"/>
+			<item id="101010308" name="emerson"/>
+			<item id="101010304" name="爱立信"/>
+			<item id="101010346" name="长城"/>
+			<item id="101010337" name="大唐"/>
+			<item id="101010347" name="戴尔"/>
+			<item id="101010359" name="鼎讯"/>
+			<item id="101010339" name="东信北邮"/>
+			<item id="101010345" name="方正"/>
+			<item id="101010355" name="烽火"/>
+			<item id="101010302" name="烽火"/>
+			<item id="101010309" name="光讯"/>
+			<item id="101010350" name="海信"/>
+			<item id="101010356" name="虹信"/>
+			<item id="101010357" name="弘浩明传"/>
+			<item id="101010305" name="华为"/>
+			<item id="101010358" name="杰赛"/>
+			<item id="101010351" name="京信"/>
+			<item id="101010336" name="京信"/>
+			<item id="101010340" name="京信通信"/>
+			<item id="101010343" name="康柏"/>
+			<item id="101010344" name="联想"/>
+			<item id="101010306" name="摩托罗拉"/>
+			<item id="101010307" name="诺基亚"/>
+			<item id="101010338" name="普天"/>
+			<item id="101010359" name="热点"/>
+			<item id="101010354" name="神州泰岳"/>
+			<item id="101010349" name="实达"/>
+			<item id="101010311" name="思科"/>
+			<item id="101010314" name="西门子"/>
+			<item id="101010352" name="先创"/>
+			<item id="101010353" name="亿阳"/>
+			<item id="101010315" name="直播星"/>
+			<item id="101010341" name="中创信测"/>
+			<item id="101010303" name="中兴"/>			
+	</dict>
+	<dict id="orderState" name="工单状态">
+			<item id="1" name="草稿"/>	
+			<item id="2" name="待处理"/>
+			<item id="3" name="处理中"/>
+			<item id="4" name="质检中"/>
+			<item id="5" name="待归档"/>
+			<item id="6" name="已归档"/>
+			<item id="7" name="其他"/>
+	</dict>
+	<dict id="isContactCustomer" name="是否联系客户">
+			<item id="101105001" name="是"/>	
+			<item id="101105002" name="否"/>
+	</dict>
+	<dict id="issueEliminatReason" name="问题原因">
+			<item id="101060917" name="网络原因"/>	
+			<item id="101060918" name="非网络原因"/>
+			<item id="101060919" name="其它"/>
+	</dict>
+	<dict id="accessWay" name="接入类型">
+			<item id="101100501" name="互联网专线"/>
+			<item id="101100502" name="数据专线"/>
+			<item id="101100503" name="GRPS专线"/>
+			<item id="101100504" name="语音专线"/>
+			<item id="101100505" name="MPLS-VPN"/>
+	</dict>
+	<dict id="isVolumeFault" name="是否批量故障">
+			<item id="1030101" name="是"/>	
+			<item id="1030102" name="否"/>
+	</dict>
+	
+</boco>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:aop="http://www.springframework.org/schema/aop" 
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx.xsd      
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+        
+    <!-- 集团投诉执行的类 -->
+    <bean id="groupComplaintDataReport" 
+    	class="com.boco.data.complaint.quartz.GroupComplaintDataReport"></bean>
+    <!-- 故障工单执行的类 -->
+    <bean id="commonFaultDataReport"
+    	class="com.boco.data.commonfault.quartz.CommonFaultDataReport"></bean>
+     <!-- 家宽投诉执行的类 -->
+    <bean id="jkComplaintDataRepor" 
+    class="com.boco.data.jkcomplaint.quartz.JkComplaintDataReport"></bean>
+    <!-- 报表短信执行的类 -->
+    <bean id="smsDataRepor"
+    class="com.boco.data.reportmanagement.quartz.ReportSmsDayTask"></bean>
+    
+    
+   <!-- 集团投诉job的配置 -->
+   <bean id="groupComplaintJobDetail"
+       class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject">
+           <ref bean="groupComplaintDataReport" />
+       </property>
+       <property name="targetMethod">
+           <value>work</value>
+       </property>
+   </bean>
+	   
+   <!-- 故障工单job的配置 -->
+   <bean id="commonFaultJobDetail"
+       class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject">
+           <ref bean="commonFaultDataReport" />
+       </property>
+       <property name="targetMethod">
+           <value>work</value>
+       </property>
+   </bean>
+	   
+   <!-- 家宽投诉job的配置 -->
+   <bean id="jkComplaintJobDetail"
+       class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject">
+           <ref bean="jkComplaintDataRepor" />
+       </property>
+       <property name="targetMethod">
+           <value>work</value>
+       </property>
+   </bean>
+   <!-- 报表短信 -->
+   <bean id="smsJobDetail"
+       class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject">
+           <ref bean="smsDataRepor" />
+       </property>
+       <property name="targetMethod">
+           <value>work</value>
+       </property>
+   </bean>
+	   
+	   
+	 <!-- 集团投诉调度的配置开始============================================= -->
+	 <bean id="groupComplaincrontestJobTrigger" 
+	  class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail">
+            <ref bean="groupComplaintJobDetail" />
+        </property>
+        <property name="cronExpression">
+        	<!-- 每天01:01分执行 -->
+            <value>0 01 01 * * ? *</value>
+        </property>
+    </bean>
+    <!-- 故障工单调度的配置开始============================================= -->
+    <bean id="commonFaultcrontestJobTrigger" 
+	  class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail">
+            <ref bean="commonFaultJobDetail" />
+        </property>
+        <property name="cronExpression">
+        	<!-- 每天01:10分执行 -->
+            <value>0 10 01 * * ? *</value>
+        </property>
+    </bean>
+    <!-- 家宽投诉工单调度的配置开始============================================= -->
+    <bean id="jkComplaintcrontestJobTrigger" 
+	  class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail">
+            <ref bean="jkComplaintJobDetail" />
+        </property>
+        <property name="cronExpression">
+        	<!-- 每天04:20分执行 -->
+            <value>0 21 04 * * ? *</value>
+        </property>
+    </bean>
+     <!-- 报表短信调度的配置开始============================================= -->
+    <bean id="smsJobTrigger" 
+	  class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail">
+            <ref bean="smsJobDetail" />
+        </property>
+        <property name="cronExpression">
+        	<!-- 每天04:20分执行 0 40 09 * * ? *-->
+            <value>10 0/1 * * * ? *</value>
+        </property>
+    </bean>
+    
+    
+    
+    <!-- 集团投诉启动触发器的配置开始-==============<ref bean="groupComplaincrontestJobTrigger2" />============================== -->
+    <!-- <bean name="groupComplaintstartQuertz" lazy-init="false" autowire="no"
+        class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="groupComplaincrontestJobTrigger" />
+                <ref bean="commonFaultcrontestJobTrigger" />
+                <ref bean="jkComplaintcrontestJobTrigger" />
+                <ref bean="smsJobTrigger" />
+            </list>
+        </property>
+    </bean> -->
+	 
+</beans>
